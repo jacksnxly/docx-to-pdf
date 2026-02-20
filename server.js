@@ -51,7 +51,7 @@ const server = http.createServer(async (req, res) => {
           "--headless",
           "--norestore",
           "--convert-to",
-          "pdf",
+          "pdf:writer_pdf_Export",
           "--outdir",
           dir,
           input,
