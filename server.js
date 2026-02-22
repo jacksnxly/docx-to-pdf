@@ -44,10 +44,14 @@ const server = http.createServer(async (req, res) => {
 
     await writeFile(input, buffer);
 
+    // Per-conversion user profile so parallel requests don't collide
+    const userInstall = path.join(dir, "lo-profile");
+
     await new Promise((resolve, reject) => {
       execFile(
         "libreoffice",
         [
+          `-env:UserInstallation=file://${userInstall}`,
           "--headless",
           "--norestore",
           "--convert-to",
@@ -56,10 +60,16 @@ const server = http.createServer(async (req, res) => {
           dir,
           input,
         ],
-        { timeout: 30_000 },
-        (err, _stdout, stderr) => {
-          if (err) reject(new Error(stderr || err.message));
-          else resolve();
+        { timeout: 60_000 },
+        (err, stdout, stderr) => {
+          if (err) {
+            const detail = [stderr, stdout, err.message]
+              .filter(Boolean)
+              .join("\n");
+            reject(new Error(detail));
+          } else {
+            resolve();
+          }
         },
       );
     });
@@ -76,9 +86,7 @@ const server = http.createServer(async (req, res) => {
     res.end("Conversion failed");
   } finally {
     if (dir) {
-      unlink(path.join(dir, "input.docx")).catch(() => {});
-      unlink(path.join(dir, "input.pdf")).catch(() => {});
-      require("node:fs").rmdir(dir, () => {});
+      require("node:fs").rm(dir, { recursive: true, force: true }, () => {});
     }
   }
 });

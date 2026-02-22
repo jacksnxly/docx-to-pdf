@@ -11,6 +11,10 @@ RUN echo "ttf-mscorefonts-installer msttcorefonts/accepted-mscorefonts-eula sele
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
     libreoffice-writer \
+    # Java runtime — required by LibreOffice for complex DOCX features
+    # (advanced fields, embedded objects, certain import filters)
+    default-jre-headless \
+    libreoffice-java-common \
     # Microsoft Core Fonts (Arial, Times New Roman, Courier New, Georgia, Verdana)
     ttf-mscorefonts-installer \
     # Metrically compatible substitutes for Calibri and Cambria
